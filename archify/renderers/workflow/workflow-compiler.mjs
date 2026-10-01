@@ -1,4 +1,6 @@
 import { createSpatialGrid } from '../shared/spatial-grid.mjs';
+// archify-personal: personal overlay (fork-only; see FORK-RULES.md section 2).
+import { personalAnnotationFont, personalLayout, personalNodeTextFit } from '../../personal/profile.mjs';
 import { esc, renderDefinitions, renderSemanticSigil, textUnits } from '../shared/utils.mjs';
 import {
   animateAttr,
@@ -394,6 +396,72 @@ function createReadableLayout(workflow, layoutFeedback = {}) {
   }
 
   const unpinnedTopEndpointIds = new Set();
+  // archify-personal: fillWidth hook.
+  // Upstream above solves the *minimal* column positions that satisfy every
+  // distance lower bound, so content never grows to fill an authored canvas
+  // (measured: authored viewBox 1400 -> lane still 712, node xs identical).
+  // Every constraint here is a lower bound on a distance, so moving columns
+  // apart can only relax them; widening is safe by construction. laneW is
+  // computed later from rightmostLaneWidth and therefore widens on its own.
+  {
+    const layoutProfile = personalLayout();
+    const authoredWidth = Number(workflow.meta?.viewBox?.[0]);
+    if (layoutProfile.enabled && layoutProfile.fillWidth
+      && Number.isFinite(authoredWidth) && authoredWidth > 0) {
+      const usedColumns = [...new Set(nodes.map((node) => node.col))]
+        .filter((col) => Number.isInteger(col) && col >= 0 && col < columnCount)
+        .sort((a, b) => a - b);
+      const halfWidthOf = (col) => nodes
+        .filter((node) => node.col === col)
+        .reduce((widest, node) => Math.max(widest, authoredNodeWidth(node) / 2), 46);
+      const firstColumn = usedColumns[0];
+      const lastColumn = usedColumns[usedColumns.length - 1];
+      if (usedColumns.length > 1 && lastColumn > firstColumn) {
+        // lane right edge is laneX + rightmost node x, so the rightmost legal
+        // node x is canvas - laneX - margin.
+        const margin = Number(layoutProfile.outerMarginPx) || 0;
+        const contentLeft = layoutProfile.laneX + margin;
+        const contentRightMax = authoredWidth - layoutProfile.laneX - margin;
+        const currentSpan = colXs[lastColumn] - colXs[firstColumn];
+        const targetSpan = (contentRightMax - margin - halfWidthOf(lastColumn))
+          - (contentLeft + halfWidthOf(firstColumn));
+        const scale = Number(layoutProfile.scale) || 1;
+        if (Number.isFinite(targetSpan) && targetSpan > 0 && currentSpan > 0) {
+          const evenStep = scale * (targetSpan / (lastColumn - firstColumn));
+          // Required minimum for each adjacent step. Read the constraint list
+          // rather than the solved positions: an unused column keeps only its
+          // baseline position, so its solved step is not a real requirement.
+          const requiredSteps = [];
+          for (let col = firstColumn + 1; col <= lastColumn; col += 1) {
+            requiredSteps.push(activeConstraints.reduce((maximum, constraint) => (
+              constraint.to === col && constraint.from === col - 1
+                && Number.isFinite(constraint.minimum)
+                ? Math.max(maximum, constraint.minimum)
+                : maximum
+            ), 0));
+          }
+          const tightest = Math.max(0, ...requiredSteps);
+          const evenIsSafe = layoutProfile.evenColumns !== false && evenStep >= tightest - 0.0001;
+          if (evenIsSafe) {
+            const base = contentLeft + halfWidthOf(firstColumn);
+            for (let col = firstColumn; col <= lastColumn; col += 1) {
+              colXs[col] = base + (col - firstColumn) * evenStep;
+            }
+            widthContributors.add(`personal fillWidth spread columns ${firstColumn}-${lastColumn} evenly at ${Math.round(evenStep)}px`);
+          } else if (targetSpan > currentSpan + 0.5) {
+            const factor = scale * (targetSpan / currentSpan);
+            for (const col of usedColumns) {
+              colXs[col] = colXs[firstColumn] + (colXs[col] - colXs[firstColumn]) * factor;
+            }
+            const shiftedLeft = Math.min(...usedColumns.map((col) => colXs[col] - halfWidthOf(col)));
+            const shift = contentLeft - shiftedLeft;
+            for (const col of usedColumns) colXs[col] += shift;
+            widthContributors.add(`personal fillWidth stretched column span ${Math.round(currentSpan)}px -> ${Math.round(targetSpan)}px`);
+          }
+        }
+      }
+    }
+  }
   for (const edge of asArray(workflow.edges)) {
     const preservesHorizontalPins = Array.isArray(edge.via) || edge.channelX !== undefined;
     if (preservesHorizontalPins) continue;
@@ -828,7 +896,7 @@ function resolveWorkflowLegendFootprint(workflow, layout) {
     LEGEND_CATALOG,
     presentLegendKinds,
   );
-  const legendFootprintOptions = { fontSize: 7, itemGap: 7 };
+  const legendFootprintOptions = { fontSize: personalAnnotationFont('legend'), itemGap: 7 };
   const oneRowLegendFootprint = legendFootprint(workflowLegendEntries, {
     ...legendFootprintOptions,
     width: Number.MAX_SAFE_INTEGER,
@@ -959,6 +1027,9 @@ function measureWorkflowNodes(workflow, layout, laneGeometry) {
   }
 
   // Font sizes for this renderer's node text; the fitting geometry is shared.
+  // archify-personal: sizes come from the personal overlay, defaulting to the
+  // stock 3.0.1 values below. Layout column spacing scales with authored width,
+  // not font size, so raising these does not squeeze the nodes.
   const nodeTextFit = {
     labelPreferred: 11,
     labelMinimum: 9,
@@ -966,6 +1037,7 @@ function measureWorkflowNodes(workflow, layout, laneGeometry) {
     sublabelMinimum: 6,
     tagPreferred: 7,
     tagMinimum: 6,
+    ...personalNodeTextFit(),
   };
 
   const nodes = new Map(asArray(workflow.nodes).map((node) => [node.id, measureNode(node)]));
@@ -1387,7 +1459,7 @@ function workflowLegendLayout(obstacles = []) {
     x: 20,
     baselineY: legendY(),
     width: workflow.schema_version === 2 ? legendPackingWidth : viewBox[0] - 40,
-    fontSize: 7,
+    fontSize: personalAnnotationFont('legend'),
     itemGap: 7,
     minTitleY: lastLaneBottom() + 8,
     obstacles,
@@ -4660,7 +4732,7 @@ function renderLane(lane, index) {
   const labelClass = lane.variant === 'exception' ? 't-security' : 't-dim';
   const prefix = lane.variant === 'exception' ? 'EX' : String(index + 1).padStart(2, '0');
   return `        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-${index}" x="${layout.laneX}" y="${y}" width="${layout.laneW}" height="${height}" rx="10" class="c-lane" stroke-width="1"/>${exception}
-        <text x="${layout.laneX + 14}" y="${y + 22}" class="${labelClass}" font-size="10" font-weight="600">${prefix} / ${esc(lane.label)}</text>`;
+        <text x="${layout.laneX + 14}" y="${y + 22}" class="${labelClass}" font-size="${personalAnnotationFont('laneTitle')}" font-weight="600">${prefix} / ${esc(lane.label)}</text>`;
 }
 
 function renderPhase(phase) {
@@ -4669,7 +4741,7 @@ function renderPhase(phase) {
   const [lineClass] = arrowClassMap[phase.variant || 'default'] || arrowClassMap.default;
   return `        <line x1="${span.x}" y1="35" x2="${span.x + span.width}" y2="35" class="${lineClass}" stroke-width="1.1"/>
         <rect x="${span.x}" y="27" width="${span.width}" height="16" rx="4" class="c-mask"/>
-        <text x="${span.cx}" y="39" class="${accent}" font-size="8" font-weight="600" text-anchor="middle">${esc(phase.label)}</text>`;
+        <text x="${span.cx}" y="39" class="${accent}" font-size="${personalAnnotationFont('phaseLabel')}" font-weight="600" text-anchor="middle">${esc(phase.label)}</text>`;
 }
 
 function renderGroup(group, index) {
@@ -4683,7 +4755,7 @@ function renderGroup(group, index) {
   const textClass = variantAccent(group.variant);
   const labelY = workflow.schema_version === 2 ? y + GROUP_LABEL_BASELINE_OFFSET : y + 14;
   return `        <rect data-graph-role="structural-frame" data-composition-frame-kind="group" data-composition-frame-id="group-${index}" x="${span.x}" y="${y}" width="${span.width}" height="${height}" rx="9" class="${cls}" stroke-width="1"/>
-        <text x="${span.x + 10}" y="${labelY}" class="${textClass}" font-size="7" font-weight="600">${esc(group.label)}</text>`;
+        <text x="${span.x + 10}" y="${labelY}" class="${textClass}" font-size="${personalAnnotationFont('groupLabel')}" font-weight="600">${esc(group.label)}</text>`;
 }
 
 function renderNode(node) {
@@ -4731,7 +4803,7 @@ function renderEdgeLabel(edge, index) {
   const labelW = workflowLabelWidth(edge.label);
   return `        <g data-detail="context" ${focusEdgeAttrs(edge.from, edge.to, edge.label, index, edge.id)}>
           <rect x="${lx - labelW / 2}" y="${ly - 10}" width="${labelW}" height="14" rx="3" class="c-mask"/>
-          <text x="${lx}" y="${ly}" class="${edgeLabelAccent(edge.variant)}" font-size="8" text-anchor="middle">${esc(edge.label)}</text>
+          <text x="${lx}" y="${ly}" class="${edgeLabelAccent(edge.variant)}" font-size="${personalAnnotationFont('edgeLabel')}" text-anchor="middle">${esc(edge.label)}</text>
         </g>`;
 }
 

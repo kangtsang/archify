@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Worktree Space 使用流程",
+    "output": "worktree-space-usage-flow.html",
+    "quality_profile": "showcase",
+    "viewBox": [1164, 652],
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "frontend": { "label": "界面与用户操作" },
+        "backend": { "label": "宿主与 Git 操作" },
+        "security": { "label": "冲突现场" },
+        "database": { "label": "归档与注销" }
+      }
+    }
+  },
+  "lanes": [
+    { "id": "user", "label": "使用者（入口与确认）" },
+    { "id": "session", "label": "任务空间会话" },
+    { "id": "git", "label": "Git 仓库与 worktree" },
+    { "id": "conflict", "label": "冲突处理" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "准备", "fromCol": 0, "toCol": 0 },
+    { "id": "create", "label": "创建", "fromCol": 1, "toCol": 1 },
+    { "id": "work", "label": "会话与并行工作", "fromCol": 3, "toCol": 3, "variant": "emphasis" },
+    { "id": "finish", "label": "结束任务", "fromCol": 4, "toCol": 5 }
+  ],
+  "groups": [
+    { "id": "conflict_zone", "label": "冲突：保留现场，不碰源码检出", "lane": "conflict", "fromCol": 4, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": ["install", "dialog", "create", "session", "finish", "trial", "merge", "cleanup"],
+  "nodes": [
+    { "id": "install", "lane": "user", "col": 0, "width": 112, "type": "frontend", "label": "安装并配置插件", "sublabel": "入口 · 前缀 · 归档" },
+    { "id": "dialog", "lane": "user", "col": 1, "width": 136, "type": "frontend", "label": "新建任务空间", "sublabel": "任务名 · 前缀 · 容器根" },
+    { "id": "create", "lane": "git", "col": 1, "width": 136, "type": "backend", "label": "建 worktree", "sublabel": "每仓库一份任务分支" },
+    { "id": "session", "lane": "session", "col": 3, "width": 136, "type": "frontend", "label": "注册并打开会话", "sublabel": "Agent 跨仓库改代码" },
+    { "id": "finish", "lane": "user", "col": 4, "width": 124, "type": "frontend", "label": "结束任务", "sublabel": "① 先自行提交改动" },
+    { "id": "trial", "lane": "git", "col": 4, "width": 124, "type": "backend", "label": "反向试合并", "sublabel": "② 目标 → 任务分支" },
+    { "id": "conflict", "lane": "conflict", "col": 4, "width": 124, "type": "security", "label": "冲突：不中止", "sublabel": "现场留在任务 worktree" },
+    { "id": "merge", "lane": "git", "col": 5, "width": 130, "type": "backend", "label": "合并回目标分支", "sublabel": "③ git merge --no-ff" },
+    { "id": "resolve", "lane": "conflict", "col": 5, "width": 130, "type": "frontend", "label": "解决并提交", "sublabel": "再点「继续结束任务」" },
+    { "id": "cleanup", "lane": "user", "col": 5, "width": 130, "type": "database", "label": "归档并注销工作区", "sublabel": "全部完成才删任务空间" }
+  ],
+  "edges": [
+    { "from": "install", "to": "dialog", "role": "main" },
+    { "from": "dialog", "to": "create", "label": "创建并打开", "role": "main" },
+    { "from": "create", "to": "session", "role": "main" },
+    { "from": "session", "to": "finish", "label": "任务修改完成后", "role": "main" },
+    { "from": "finish", "to": "trial", "role": "main" },
+    { "from": "trial", "to": "merge", "role": "main" },
+    { "from": "merge", "to": "cleanup", "role": "main" },
+    { "from": "trial", "to": "conflict", "label": "冲突", "variant": "security", "role": "error" },
+    { "from": "conflict", "to": "resolve" },
+    { "from": "resolve", "to": "merge", "label": "继续结束任务", "role": "return" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "入口与隔离",
+      "items": [
+        "两个入口：侧边栏底部 / 新会话下方",
+        "三视图可搜索、可筛「待处理」",
+        "每仓库一份 worktree，源码检出不动"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "为什么先反向试合并",
+      "items": [
+        "真合并冲突会落在源检出上",
+        "先在任务 worktree 里试一次",
+        "干净则撤销再合并；占用时走临时 worktree"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "插件不替你做决定",
+      "items": [
+        "不代写提交：改动挡住确认",
+        "不自动 abort：冲突现场原样保留",
+        "交由 agent 是实验性入口，可隐藏"
+      ]
+    }
+  ]
+}

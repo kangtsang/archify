@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "archify-personal 个性化 profile。",
+    "这些值只在 personal 分支生效，合并上游时冲突面应仅限 personal/* 与 hook 行。",
+    "layout.json 替代原 render-wide.mjs 的 wide-canvas-and-derived-columns 补丁。",
+    "typography.json 替代原 render-wide.mjs 的 larger-node-type / larger-annotation-type 补丁。"
+  ],
+
+  "layout": {
+    "_comment": [
+      "对应 workflow-compiler.mjs createReadableLayout() 的插桩点。",
+      "上游 v2 是极小解求解器：colXs 只保证下限，laneW = max(640, rightmostLaneWidth, laneLabelWidth)，",
+      "因此永远不会填满手写的 meta.viewBox。fillWidth 打开后按此策略把列距拉大以占用画布。",
+      "所有约束都是距离下限，因此拉开列距必然不违反任何约束。",
+      "evenColumns=true 时按等距重排每一列（含无节点列），但会先校验等距步长不小于任何相邻列的约束下限；",
+      "若校验不过则退化为按比例缩放（保留求解器的相对疏密）。"
+    ],
+    "enabled": true,
+    "fillWidth": true,
+    "scale": 1.0,
+    "outerMarginPx": 24,
+    "evenColumns": true
+  },
+
+  "typography": {
+    "_comment": [
+      "字号全部为 viewBox 单位。上游 3.0.1 与 2.14.0 完全相同：",
+      "label 11 / sublabel 8 / tag 7 / edge 7 / legend 7 / laneTitle 10 / phase 7 / group 7。",
+      "中文在 viewBox 里比英文显窄，实测 1.18 倍后可读性明显改善；",
+      "若换成 15px 级别，需同步放大 profile.nodeWidthScale 避免 fittedNodeFontSize 反向压回。"
+    ],
+    "scale": 1.18,
+    "node": {
+      "labelPreferred": 13,
+      "labelMinimum": 10,
+      "sublabelPreferred": 9.5,
+      "sublabelMinimum": 7,
+      "tagPreferred": 8.5,
+      "tagMinimum": 7
+    },
+    "annotation": {
+      "edgeLabel": 9.5,
+      "phaseLabel": 9.5,
+      "laneTitle": 12,
+      "groupLabel": 8.5,
+      "legend": 8.5
+    },
+    "nodeWidthScale": 1.0
+  }
+}
