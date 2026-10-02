@@ -9,7 +9,7 @@
 >
 > | | This build |
 > | --- | --- |
-> | Adapter version | `0.2.0-personal.2` |
+> | Adapter version | `0.2.0-personal.3` |
 > | Bundled Archify Skill | **3.0.1** |
 > | Skill source commit | `25f9e0e7aa2ef149cc49630760db1970eb646695` |
 > | Adapter commit | the `personal` branch HEAD that produced this tarball (`git log -1`), since `release.json` pins only the Skill source commit |
