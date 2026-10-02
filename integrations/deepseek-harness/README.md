@@ -1,5 +1,41 @@
 # `@tt-a1i/archify-dsh`
 
+<!-- archify-personal:personal-build-notice:START -->
+> [!IMPORTANT]
+> ## This tarball is a personal fork build, not an upstream release
+>
+> Built from **`kangtsang/archify`** (`personal` branch), not from `tt-a1i/archify`.
+> It is not published to npm and carries no upstream endorsement or support.
+>
+> | | This build |
+> | --- | --- |
+> | Adapter version | `0.2.0-personal.1` |
+> | Bundled Archify Skill | **3.0.1** |
+> | Skill source commit | `25f9e0e7aa2ef149cc49630760db1970eb646695` |
+> | Adapter commit | `f2debddb0fd1fca7ae747e58117381e9c1b1383d` |
+> | DSH used for acceptance | `0.1.7-rc.2` |
+>
+> It additionally bundles a personal overlay (`skills/archify/personal/`) that adds two
+> capabilities upstream 3.0.1 does not provide, both measured rather than assumed:
+> a **wide canvas** that actually spreads content to fill an authored `meta.viewBox`
+> (stock `readable-v2` solves only minimal column positions), and **CJK typography**
+> tiers (stock node label/sublabel sizes are unchanged from 2.14.0 at 11/8). The overlay
+> is inert unless enabled in `skills/archify/personal/profile.json`.
+>
+> Rebuild it yourself from the fork:
+>
+> ```bash
+> node integrations/deepseek-harness/scripts/pack.mjs --out dist/archify-dsh-personal.tgz --json
+> ```
+>
+> Everything **below this notice is upstream's README**, retained verbatim as build and
+> release-process reference. Its statements about the published `0.1.0` package, the
+> upstream `0.2.0` preview, its bundled 2.14.0 Skill, and source commit `920543ba`
+> describe **upstream's** artifacts — they do **not** apply to the tarball you are
+> looking at. Follow the installation command in "Install" below, substituting this
+> build's path; the npm coordinates in that section do not exist for `0.2.0-personal.1`.
+<!-- archify-personal:personal-build-notice:END -->
+
 Community DeepSeek Harness integration for [Archify](https://github.com/tt-a1i/archify). This is **not** an official DeepSeek product and does not imply DeepSeek endorsement.
 
 The currently published npm package is **v0.1.0**, with experimental compatibility for developer-preview **`@deepseek-ai/dsh@0.1.0-rc.6`** on Node.js **`^22.19.0 || >=24.0.0`**. It bundles Archify Skill **2.14.0**. It is not a stable cross-version guarantee.
