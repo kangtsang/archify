@@ -4,6 +4,7 @@
 > [!IMPORTANT]
 > ## This tarball is a personal fork build, not an upstream release
 >
+> Personal build maintained by **@kangtsang** — questions and forks: <https://github.com/kangtsang/archify>.
 > Built from **`kangtsang/archify`** (`personal` branch), not from `tt-a1i/archify`.
 > It is not published to npm and carries no upstream endorsement or support.
 >
