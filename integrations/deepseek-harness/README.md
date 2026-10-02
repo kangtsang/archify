@@ -9,10 +9,10 @@
 >
 > | | This build |
 > | --- | --- |
-> | Adapter version | `0.2.0-personal.1` |
+> | Adapter version | `0.2.0-personal.2` |
 > | Bundled Archify Skill | **3.0.1** |
 > | Skill source commit | `25f9e0e7aa2ef149cc49630760db1970eb646695` |
-> | Adapter commit | `f2debddb0fd1fca7ae747e58117381e9c1b1383d` |
+> | Adapter commit | the `personal` branch HEAD that produced this tarball (`git log -1`), since `release.json` pins only the Skill source commit |
 > | DSH used for acceptance | `0.1.7-rc.2` |
 >
 > It additionally bundles a personal overlay (`skills/archify/personal/`) that adds two

@@ -1,7 +1,7 @@
 {
   "name": "@tt-a1i/archify-dsh",
-  "version": "0.2.0-personal.1",
-  "description": "Opt-in DeepSeek Harness Skill-only bundle for the Archify architecture-diagram skill.",
+  "version": "0.2.0-personal.2",
+  "description": "PERSONAL FORK BUILD (not upstream, not published): Opt-in DeepSeek Harness Skill-only bundle for Archify, adding a wide-canvas and CJK typography overlay. Ships Archify Skill 3.0.1.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
