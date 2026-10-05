@@ -1,6 +1,6 @@
 {
   "name": "@tt-a1i/archify-dsh",
-  "version": "0.2.0-personal.3",
+"version": "0.2.0-personal.3",
   "description": "个人定制版（非上游、未发布）：Archify 的 DeepSeek Harness Skill-only 插件包，附带宽画布与中文排版覆盖层。内置 Archify Skill 3.0.1。",
   "license": "MIT",
   "type": "module",
@@ -14,6 +14,7 @@
     "cordis.patch.yml",
     "skills",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
     "release.json"
   ],
