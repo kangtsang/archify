@@ -10,9 +10,9 @@
 >
 > | | This build |
 > | --- | --- |
-> | Adapter version | `0.2.0-personal.3` |
+> | Adapter version | `1.0.0-personal.1` |
 > | Bundled Archify Skill | **3.0.1** |
-> | Skill source commit | `25f9e0e7aa2ef149cc49630760db1970eb646695` |
+> | Skill source commit | `280b4a332ea61e2f6cf94395148a79fc6a90c175` |
 > | Adapter commit | the `personal` branch HEAD that produced this tarball (`git log -1`), since `release.json` pins only the Skill source commit |
 > | DSH used for acceptance | `0.1.7-rc.2` |
 >
@@ -34,7 +34,7 @@
 > upstream `0.2.0` preview, its bundled 2.14.0 Skill, and source commit `920543ba`
 > describe **upstream's** artifacts — they do **not** apply to the tarball you are
 > looking at. Follow the installation command in "Install" below, substituting this
-> build's path; the npm coordinates in that section do not exist for `0.2.0-personal.1`.
+> build's path; the npm coordinates in that section do not exist for `1.0.0-personal.1`.
 <!-- archify-personal:personal-build-notice:END -->
 
 Community DeepSeek Harness integration for [Archify](https://github.com/tt-a1i/archify). This is **not** an official DeepSeek product and does not imply DeepSeek endorsement.
